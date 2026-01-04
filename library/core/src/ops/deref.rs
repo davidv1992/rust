@@ -282,6 +282,23 @@ impl<T: ?Sized> const DerefMut for &mut T {
     }
 }
 
+/// TODO
+#[lang = "place"]
+#[unstable(feature = "place", issue = "none")]
+pub unsafe trait Place: DerefMut + PointeeSized {
+    /// TODO
+    #[lang = "place_args"]
+    type NewArg;
+
+    /// TODO
+    #[lang = "place_new"]
+    unsafe fn new_uninit(arg: Self::NewArg) -> Self;
+
+    /// TODO
+    #[lang = "place_deref"]
+    fn place(&self) -> *const Self::Target;
+}
+
 /// Perma-unstable marker trait. Indicates that the type has a well-behaved [`Deref`]
 /// (and, if applicable, [`DerefMut`]) implementation. This is relied on for soundness
 /// of deref patterns.

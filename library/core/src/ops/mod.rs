@@ -171,6 +171,8 @@ pub use self::coroutine::{Coroutine, CoroutineState};
 pub use self::deref::DerefPure;
 #[unstable(feature = "legacy_receiver_trait", issue = "none")]
 pub use self::deref::LegacyReceiver;
+#[unstable(feature = "place", issue = "none")]
+pub use self::deref::Place;
 #[unstable(feature = "arbitrary_self_types", issue = "44874")]
 pub use self::deref::Receiver;
 #[stable(feature = "rust1", since = "1.0.0")]

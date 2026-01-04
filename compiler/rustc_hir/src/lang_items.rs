@@ -239,6 +239,10 @@ language_item_table! {
     DerefMut,                sym::deref_mut,           deref_mut_trait,            Target::Trait,          GenericRequirement::Exact(0);
     DerefPure,               sym::deref_pure,          deref_pure_trait,           Target::Trait,          GenericRequirement::Exact(0);
     DerefTarget,             sym::deref_target,        deref_target,               Target::AssocTy,        GenericRequirement::None;
+    Place,                   sym::place,               place_trait,                Target::Trait,          GenericRequirement::Exact(0);
+    PlaceArgs,               sym::place_args,          place_args,                 Target::AssocTy,        GenericRequirement::None;
+    PlaceNew,                sym::place_new,           place_new_method,           Target::Method(MethodKind::Trait { body: false }), GenericRequirement::Exact(0);
+    PlaceDeref,              sym::place_deref,         place_deref_method,         Target::Method(MethodKind::Trait { body: false }), GenericRequirement::Exact(0);
     Receiver,                sym::receiver,            receiver_trait,             Target::Trait,          GenericRequirement::None;
     ReceiverTarget,          sym::receiver_target,     receiver_target,            Target::AssocTy,        GenericRequirement::None;
     LegacyReceiver,          sym::legacy_receiver,     legacy_receiver_trait,      Target::Trait,          GenericRequirement::None;
