@@ -341,6 +341,7 @@ impl Needs {
 #[derive(Debug, Copy, Clone)]
 pub enum PlaceOp {
     Deref,
+    DerefPlace,
     Index,
 }
 

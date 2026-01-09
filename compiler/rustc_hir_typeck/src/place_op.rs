@@ -27,6 +27,12 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             return Some(ty);
         }
 
+        if let Some(ok) = self.try_overloaded_place_deref(expr.span, oprnd_ty) {
+            let method = self.register_infer_ok_obligations(ok);
+            let ty = self.make_overloaded_place_return_type(method);
+            return Some(ty);
+        }
+
         let ok = self.try_overloaded_deref(expr.span, oprnd_ty)?;
         let method = self.register_infer_ok_obligations(ok);
         if let ty::Ref(_, _, hir::Mutability::Not) = method.sig.inputs()[0].kind() {
@@ -204,6 +210,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
 
         let (Some(imm_tr), imm_op) = (match op {
             PlaceOp::Deref => (self.tcx.lang_items().deref_trait(), sym::deref),
+            PlaceOp::DerefPlace => (self.tcx.lang_items().place_trait(), sym::place),
             PlaceOp::Index => (self.tcx.lang_items().index_trait(), sym::index),
         }) else {
             // Bail if `Deref` or `Index` isn't defined.
@@ -234,6 +241,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
 
         let (Some(mut_tr), mut_op) = (match op {
             PlaceOp::Deref => (self.tcx.lang_items().deref_mut_trait(), sym::deref_mut),
+            PlaceOp::DerefPlace => (self.tcx.lang_items().place_trait(), sym::place),
             PlaceOp::Index => (self.tcx.lang_items().index_mut_trait(), sym::index_mut),
         }) else {
             // Bail if `DerefMut` or `IndexMut` isn't defined.
@@ -370,6 +378,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
 
         let arg_ty = match op {
             PlaceOp::Deref => None,
+            PlaceOp::DerefPlace => None,
             PlaceOp::Index => {
                 // We would need to recover the `T` used when we resolve `<_ as Index<T>>::index`
                 // in try_index_step. This is the arg at index 1.

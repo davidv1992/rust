@@ -18,6 +18,14 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
         Autoderef::new(self, self.param_env, self.body_id, span, base_ty)
     }
 
+    pub(crate) fn try_overloaded_place_deref(
+        &self,
+        span: Span,
+        base_ty: Ty<'tcx>,
+    ) -> Option<InferOk<'tcx, MethodCallee<'tcx>>> {
+        self.try_overloaded_place_op(span, base_ty, None, PlaceOp::DerefPlace)
+    }
+
     pub(crate) fn try_overloaded_deref(
         &self,
         span: Span,

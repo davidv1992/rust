@@ -15,6 +15,8 @@ use crate::traits::query::evaluate_obligation::InferCtxtExt;
 pub enum AutoderefKind {
     /// A true pointer type, such as `&T` and `*mut T`.
     Builtin,
+    /// A type which must dispatch to a `Place` implementation
+    Place,
     /// A type which must dispatch to a `Deref` implementation.
     Overloaded,
 }
@@ -99,6 +101,9 @@ impl<'a, 'tcx> Iterator for Autoderef<'a, 'tcx> {
                 } else {
                     (AutoderefKind::Builtin, ty)
                 }
+            } else if let Some(ty) = self.overloaded_place_ty(self.state.cur_ty) {
+                // The overloaded place check already normalizes the pointee type.
+                (AutoderefKind::Place, ty)
             } else if let Some(ty) = self.overloaded_deref_ty(self.state.cur_ty) {
                 // The overloaded deref check already normalizes the pointee type.
                 (AutoderefKind::Overloaded, ty)
@@ -143,6 +148,42 @@ impl<'a, 'tcx> Autoderef<'a, 'tcx> {
             use_receiver_trait: false,
             silence_errors: false,
         }
+    }
+
+    fn overloaded_place_ty(&mut self, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
+        debug!("overloaded_place_ty({:?})", ty);
+        let tcx = self.infcx.tcx;
+
+        if ty.references_error() {
+            return None;
+        }
+
+        let trait_ref = ty::TraitRef::new(tcx, tcx.lang_items().place_trait()?, [ty]);
+        let cause = traits::ObligationCause::misc(self.span, self.body_id);
+        let obligation = traits::Obligation::new(
+            tcx,
+            cause.clone(),
+            self.param_env,
+            ty::Binder::dummy(trait_ref),
+        );
+        // We detect whether the self type implements `Place` before trying to
+        // structurally normalize. We use `predicate_may_hold_opaque_types_jank`
+        // to support not-yet-defined opaque types. It will succeed for `impl Place`
+        // but fail for `impl OtherTrait`.
+        if !self.infcx.predicate_may_hold_opaque_types_jank(&obligation) {
+            debug!("overloaded_deref_ty: cannot match obligation");
+            return None;
+        }
+
+        let (normalized_ty, obligations) = self.structurally_normalize_ty(Ty::new_projection(
+            tcx,
+            tcx.lang_items().deref_target()?,
+            [ty],
+        ))?;
+        debug!("overloaded_place_ty({:?}) = ({:?}, {:?})", ty, normalized_ty, obligations);
+        self.state.obligations.extend(obligations);
+
+        Some(self.infcx.resolve_vars_if_possible(normalized_ty))
     }
 
     fn overloaded_deref_ty(&mut self, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
