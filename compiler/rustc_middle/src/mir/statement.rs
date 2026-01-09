@@ -214,7 +214,13 @@ impl<'tcx> PlaceTy<'tcx> {
         let answer = match *elem {
             ProjectionElem::Deref => {
                 let ty = structurally_normalize(self.ty).builtin_deref(true).unwrap_or_else(|| {
-                    bug!("deref projection of non-dereferenceable ty {:?}", self)
+                    structurally_normalize(Ty::new_projection(
+                        tcx,
+                        tcx.lang_items()
+                            .deref_target()
+                            .unwrap_or_else(|| bug!("Missing deref_target lang item")),
+                        [self.ty],
+                    ))
                 });
                 PlaceTy::from_ty(ty)
             }

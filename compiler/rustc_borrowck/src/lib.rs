@@ -1861,11 +1861,7 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, '_, 'tcx> {
                         ));
                         return;
                     }
-                    ty::Adt(adt, _) => {
-                        if !adt.is_box() {
-                            bug!("Adt should be a box type when Place is deref");
-                        }
-                    }
+                    ty::Adt(_, _) => {}
                     ty::Bool
                     | ty::Char
                     | ty::Int(_)
@@ -2568,12 +2564,8 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, '_, 'tcx> {
                                     }),
                                 }
                             }
-                            // `Box<T>` owns its content, so mutable if its location is mutable
-                            _ if base_ty.is_box() => {
-                                self.is_mutable(place_base, is_local_mutation_allowed)
-                            }
-                            // Deref should only be for reference, pointers or boxes
-                            _ => bug!("Deref of unexpected type: {:?}", base_ty),
+                            // `Box<T>` and `impl Place` own their content, so mutable if its location is mutable
+                            _ => self.is_mutable(place_base, is_local_mutation_allowed),
                         }
                     }
                     // Check as the inner reference type if it is a field projection

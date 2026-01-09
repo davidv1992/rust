@@ -140,11 +140,7 @@ impl<'a, 'tcx, F: Fn(Ty<'tcx>) -> bool> MoveDataBuilder<'a, 'tcx, F> {
                             ty::Ref(..) | ty::RawPtr(..) => {
                                 return;
                             }
-                            ty::Adt(adt, _) => {
-                                if !adt.is_box() {
-                                    bug!("Adt should be a box type when Place is deref");
-                                }
-                            }
+                            ty::Adt(_, _) => {}
                             ty::Bool
                             | ty::Char
                             | ty::Int(_)
