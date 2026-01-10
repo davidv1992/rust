@@ -143,6 +143,7 @@ declare_passes! {
     mod early_otherwise_branch : EarlyOtherwiseBranch;
     mod erase_deref_temps : EraseDerefTemps;
     mod elaborate_box_derefs : ElaborateBoxDerefs;
+    mod elaborate_place_derefs: ElaboratePlaceDerefs;
     mod elaborate_drops : ElaborateDrops;
     mod function_item_references : FunctionItemReferences;
     mod gvn : GVN;
@@ -644,6 +645,7 @@ fn run_runtime_lowering_passes<'tcx>(tcx: TyCtxt<'tcx>, body: &mut Body<'tcx>) {
         &add_retag::AddRetag,
         &erase_deref_temps::EraseDerefTemps,
         &elaborate_box_derefs::ElaborateBoxDerefs,
+        &elaborate_place_derefs::ElaboratePlaceDerefs,
         &coroutine::StateTransform,
         &Lint(known_panics_lint::KnownPanicsLint),
     ];
